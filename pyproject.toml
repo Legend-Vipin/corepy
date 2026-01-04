@@ -51,11 +51,7 @@ Documentation = "https://corepy.readthedocs.io/"
 Repository = "https://github.com/ai-foundation-software/corepy.git"
 Issues = "https://github.com/ai-foundation-software/corepy/issues"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["corepy*"]
 
-[tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --cov=corepy"
 testpaths = [

@@ -52,10 +52,13 @@ Repository = "https://github.com/ai-foundation-software/corepy.git"
 Issues = "https://github.com/ai-foundation-software/corepy/issues"
 
 
+
+[tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --cov=corepy"
 testpaths = [
     "tests",
+
 ]
 python_files = "test_*.py"
 python_classes = "Test*"

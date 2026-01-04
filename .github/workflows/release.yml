@@ -1,100 +1,62 @@
-name: Release to PyPI
+name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  build_sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-sdist
+          path: dist/*.tar.gz
+
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    
+
     steps:
       - uses: actions/checkout@v4
-      
-      # Setup C++ toolchain for Windows specifically if needed, but cibuildwheel usually handles visual studio
-      
+
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.16.2
+        uses: pypa/cibuildwheel@v2.16.5
         env:
-          # Limit Python versions if needed (matching pyproject.toml)
-          CIBW_BUILD: "cp39-* cp310-* cp311-* cp312-* cp313-*"
-          # Skip PyPy, Musllinux if not explicitly tested yet, focusing on manylinux/macosx/win
-          # (Optional) Verify imports or run basic tests
-          CIBW_TEST_COMMAND: "python -c \"import corepy; print(corepy.__version__)\""
-          # Ensure appropriate arch for macOS 
-          CIBW_ARCHS_MACOS: "x86_64 arm64"
+          CIBW_BUILD_VERBOSITY: 1
 
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
-  build_sdist:
-    name: Build source distribution
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Build sdist
-        run: pipx run build --sdist
-        
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cibw-sdist
-          path: dist/*.tar.gz
-
-  publish_pypi:
+  pypi-publish:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment:
-      name: pypi
+      name: release
       url: https://pypi.org/p/corepy
     permissions:
-      contents: read
-      
+      id-token: write 
     steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           pattern: cibw-*
           path: dist
           merge-multiple: true
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
-
-  create_release:
-    name: Create GitHub Release
-    needs: [publish_pypi]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Download all the dists
-        uses: actions/download-artifact@v4
-        with:
-          pattern: cibw-*
-          path: dist
-          merge-multiple: true
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: dist/*
-          generate_release_notes: true
-          draft: false
-          prerelease: false
+      - uses: pypa/gh-action-pypi-publish@release/v1

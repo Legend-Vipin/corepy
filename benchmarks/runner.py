@@ -1,9 +1,10 @@
 
-import time
 import gc
-import statistics
-from typing import Callable, List, Dict, Any, Optional
 import platform
+import statistics
+import time
+from typing import Any, Callable, Dict, List, Optional
+
 
 class BenchmarkRunner:
     """
@@ -72,7 +73,6 @@ class BenchmarkRunner:
 
     def save_report(self, path: str = "benchmark_report.json"):
         import json
-        import os
         
         report = {
             "system": {

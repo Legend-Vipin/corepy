@@ -1,4 +1,5 @@
-from corepy.schema import Schema, Field
+from corepy.schema import Schema
+
 
 def test_schema_creation():
     s = Schema(fields=[])

@@ -3,20 +3,69 @@ name: Release
 on:
   release:
     types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  # Job 1: Build & Publish Rust Runtime
+  build_rust_wheels:
+    name: Build Rust wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: PyO3/maturin-action@v1
+        with:
+          working-directory: rust/corepy-runtime
+          command: build
+          args: --release --out dist
+          
+      - name: Upload Rust wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-wheels-${{ matrix.os }}
+          path: rust/corepy-runtime/dist/*.whl
+
+  publish_rust:
+    name: Publish Rust Runtime to PyPI
+    needs: [build_rust_wheels]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/corepy-runtime
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: rust-wheels-*
+          path: dist
+          merge-multiple: true
+      
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+
+  # Job 2: Build & Publish Python Package (Runs after Rust)
   build_sdist:
-    name: Build source distribution
+    name: Build Python sdist
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Build sdist
-        run: pipx run build --sdist
+        run: uvx build --sdist
 
       - uses: actions/upload-artifact@v4
         with:
@@ -24,8 +73,12 @@ jobs:
           path: dist/*.tar.gz
 
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build Python wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    needs: [publish_rust] # Ensure Rust runtime is available on PyPI?
+    # Actually, cibuildwheel builds the wheel containing just Python/C++ logic.
+    # It declares dependency on corepy-runtime.
+    # So we can theoretically build in parallel, but PUBLISH should wait.
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -37,18 +90,20 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.5
         env:
           CIBW_BUILD_VERBOSITY: 1
+          CIBW_SKIP: "pp* *-win32 *i686*"
+          CMAKE_GENERATOR: Ninja
 
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
 
-  pypi-publish:
-    name: Publish to PyPI
-    needs: [build_wheels, build_sdist]
+  publish_python:
+    name: Publish Corepy to PyPI
+    needs: [build_wheels, build_sdist, publish_rust] # Strict ordering
     runs-on: ubuntu-latest
     environment:
-      name: release
+      name: pypi
       url: https://pypi.org/p/corepy
     permissions:
       id-token: write 
@@ -60,3 +115,5 @@ jobs:
           merge-multiple: true
 
       - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

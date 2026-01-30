@@ -1,7 +1,8 @@
-import sys
-import pytest
-from unittest.mock import patch
 import importlib
+import sys
+
+import pytest
+
 
 def test_init_fallback_missing_extension():
     """

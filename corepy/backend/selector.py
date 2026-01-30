@@ -1,10 +1,9 @@
-import os
 import logging
+import os
 from typing import Optional
-from .types import BackendType, OperationType, OperationProperties
-from .device import DeviceInfo, Device
-from .backend import Backend, CPUBackend, GPUBackend
-from .errors import DeviceNotFoundError
+
+from .device import DeviceInfo
+from .types import BackendType, OperationProperties, OperationType
 
 # Configure logging
 logger = logging.getLogger("corepy.backend.selector")

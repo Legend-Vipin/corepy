@@ -1,5 +1,7 @@
 from typing import Any, Dict, List, Optional
+
 from corepy.schema import Schema
+
 
 class Table:
     """

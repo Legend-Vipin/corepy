@@ -1,6 +1,7 @@
-from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Optional, Tuple, Any
+from enum import Enum, auto
+from typing import Tuple
+
 
 class BackendType(Enum):
     """

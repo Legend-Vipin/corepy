@@ -1,7 +1,8 @@
-from typing import Dict, Any, Callable, Tuple, Optional
-from .types import BackendType
-from .errors import OperationNotSupportedError
 import logging
+from typing import Any, Callable, Dict, Tuple
+
+from .errors import OperationNotSupportedError
+from .types import BackendType
 
 logger = logging.getLogger("corepy.backend.dispatch")
 

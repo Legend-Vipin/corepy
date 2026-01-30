@@ -1,9 +1,11 @@
-from abc import ABC, abstractmethod
-from typing import Optional, List, Any
-import platform
 import os
+import platform
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from typing import List, Optional
+
 from .types import BackendType
+
 
 @dataclass
 class DeviceInfo:

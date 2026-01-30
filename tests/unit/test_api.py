@@ -1,5 +1,7 @@
 import pytest
+
 import corepy
+
 
 def test_version_exists():
     assert hasattr(corepy, "__version__")

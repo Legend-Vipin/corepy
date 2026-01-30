@@ -18,7 +18,7 @@ Whether you are fixing a typo, adding an example, or writing complex C++ kernels
 
 To contribute code, you'll need to build Corepy from source.
 
-1.  **Follow the [Installation Guide](docs/install.md)** to set up your environment (Python, C++, Rust).
+1.  **Follow the [Installation Guide](docs/01_quickstart/install.md)** to set up your environment (Python, C++, Rust).
 2.  **Install Development Dependencies**:
     ```bash
     pip install pytest pytest-cov ruff maturin

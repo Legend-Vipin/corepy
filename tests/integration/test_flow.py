@@ -1,5 +1,6 @@
 import corepy as cp
 
+
 def test_end_to_end_flow():
     # 1. Define Schema
     schema = cp.schema.Schema(fields=[])

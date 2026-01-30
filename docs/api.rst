@@ -1,6 +1,22 @@
 API Reference
 =============
 
+Computables
+-----------
+
+.. automodule:: corepy
+   :members: Tensor, backend
+   :undoc-members:
+   :show-inheritance:
+
+Profiler
+--------
+
+.. automodule:: corepy.profiler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Data
 ----
 

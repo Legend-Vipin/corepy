@@ -1,6 +1,8 @@
-import sys
 import platform
+import sys
+
 import corepy
+
 
 def test_python_version():
     """Ensure we are running on a supported Python version (>= 3.9)."""

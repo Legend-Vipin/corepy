@@ -46,10 +46,44 @@ env.bak/
 venv.bak/
 
 # IDEs
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 .idea/
 
 # Corepy specific
 *.so
 *.dylib
 *.dll
+*.pyd
+
+# Temporary output files
+*_output.txt
+*.log
+*.tmp
+
+# Rust
+target/
+**/*.rs.bk
+
+# C++ / CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+csrc/build/
+_deps/
+
+# Ruff
+.ruff_cache/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.directory

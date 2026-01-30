@@ -1,7 +1,9 @@
-from typing import Optional, Dict
-from .types import BackendType
-from .device import detect_devices, DeviceInfo
+from typing import Dict
+
 from .backend import Backend, CPUBackend, GPUBackend
+from .device import DeviceInfo, detect_devices
+from .types import BackendType
+
 
 class Session:
     """

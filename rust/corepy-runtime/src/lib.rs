@@ -1,14 +1,48 @@
+// ============================================================================
+// Corepy Runtime: Rust Layer (System Brain)
+// ============================================================================
+// 
+// This is the Rust runtime layer of Corepy's 3-layer architecture:
+// 
+//   Python (UX) → Rust (Brain) → C++ (Muscle)
+// 
+// RESPONSIBILITIES (see docs/execution_model.md):
+// - Tensor validation (shape/dtype/device compatibility)
+// - Memory lifetime management (arena allocators)
+// - Work-stealing scheduler (rayon)
+// - Backend dispatch (CPU → C++, GPU → CUDA/Metal)
+// - FFI safety boundary (Send/Sync enforcement)
+// - NEVER in math hot path
+//
+// MODULES:
+// - ffi/: Python ↔ Rust bridge (PyO3)
+// - ops/: Operation dispatch to C++ kernels
+// - tensor/: Internal tensor representation (future)
+// - scheduler/: Rayon-based work-stealing (future)
+// - backend/: CPU/GPU backend selection (future)
+
 use pyo3::prelude::*;
 
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
+// Module declarations
+mod ffi;
+mod ops;
+mod tensor;      // Future: Shape, dtype, buffer management
+mod scheduler;   // Future: Rayon scheduler
+mod backend;     // Future: Backend dispatch
+mod profiler;    // Performance profiling system
 
-/// A Python module implemented in Rust.
+// ============================================================================
+// PyO3 Module Definition
+// ============================================================================
+
+/// Python module implemented in Rust
+/// 
+/// This exports Rust functions to Python via PyO3.
+/// All function signatures use raw pointers for zero-copy performance.
 #[pymodule]
 fn _corepy_rust(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    // Register all FFI functions from ffi/python.rs
+    ffi::python::register_functions(m)?;
+    
     Ok(())
 }

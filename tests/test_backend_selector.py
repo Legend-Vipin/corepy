@@ -1,8 +1,11 @@
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import MagicMock, patch
-from corepy.backend.selector import select_backend
-from corepy.backend.types import BackendType, OperationType, OperationProperties
+
 from corepy.backend.device import DeviceInfo
+from corepy.backend.selector import select_backend
+from corepy.backend.types import BackendType, OperationProperties, OperationType
+
 
 @pytest.fixture
 def cpu_only_device():

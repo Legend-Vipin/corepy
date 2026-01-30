@@ -1,6 +1,7 @@
 from corepy.data import Table
 from corepy.runtime.pipeline import Pipeline
 
+
 def test_pipeline_creation():
     p = Pipeline()
     assert len(p.steps) == 0

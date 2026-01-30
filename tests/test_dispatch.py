@@ -1,8 +1,10 @@
 import pytest
-from corepy.tensor import Tensor
-from corepy.backend.types import BackendType
-from corepy.backend.errors import OperationNotSupportedError
+
 from corepy.backend.dispatch import dispatch_kernel, register_kernel
+from corepy.backend.errors import OperationNotSupportedError
+from corepy.backend.types import BackendType
+from corepy.tensor import Tensor
+
 
 def test_cpu_add_dispatch():
     t1 = Tensor([1, 2, 3])

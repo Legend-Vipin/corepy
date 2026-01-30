@@ -1,7 +1,6 @@
 
-from typing import Any, List, Optional
-import math
-from corepy.backend.types import BackendType
+from typing import Any, List
+
 
 class ReferenceBackend:
     """

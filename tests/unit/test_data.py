@@ -1,6 +1,7 @@
 from corepy.data import Table
 from corepy.schema import Schema
 
+
 def test_table_creation():
     data = [{"a": 1}, {"a": 2}]
     t = Table(data)
@@ -13,7 +14,6 @@ def test_table_repr():
     t = Table(data)
     assert "Table(rows=1" in repr(t)
     assert "schema=None" in repr(t)
-from corepy.schema import Schema
 
 def test_table_creation(sample_data):
     table = Table(sample_data)

@@ -23,14 +23,26 @@ fn main() {
     // Link the C++ library
     println!("cargo:rustc-link-search=native={}", build_path.display());
     println!("cargo:rustc-link-lib=static=corepy_kernels");
-    
+
     // Link OpenBLAS (required by corepy_kernels)
-    println!("cargo:rustc-link-search=native=/usr/lib/x86_64-linux-gnu");
-    println!("cargo:rustc-link-lib=dylib=openblas");
-    
-    // Link C++ standard library
-    println!("cargo:rustc-link-lib=dylib=stdc++");
-    
+    #[cfg(target_os = "linux")]
+    {
+        println!("cargo:rustc-link-search=native=/usr/lib/x86_64-linux-gnu");
+        println!("cargo:rustc-link-lib=dylib=openblas");
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        println!("cargo:rustc-link-lib=dylib=openblas");
+        println!("cargo:rustc-link-lib=dylib=c++");
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        println!("cargo:rustc-link-lib=dylib=openblas");
+    }
+
     // Tell cargo to rerun if C++ code changes
     println!("cargo:rerun-if-changed=../../csrc/src");
     println!("cargo:rerun-if-changed=../../csrc/include");

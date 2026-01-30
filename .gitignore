@@ -68,6 +68,9 @@ venv.bak/
 target/
 **/*.rs.bk
 
+# Ignore nested Rust build directories
+rust/target/
+
 # C++ / CMake
 CMakeCache.txt
 CMakeFiles/

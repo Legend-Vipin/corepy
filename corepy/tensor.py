@@ -279,7 +279,7 @@ class Tensor:
     def all(self) -> 'Tensor':
         """Returns True if all elements evaluate to True."""
         try:
-            from _corepy_rust import tensor_all
+            from ._corepy_rust import tensor_all
             
             ptr, count, _ref = self._get_buffer_pointer('u1')
             result = tensor_all(ptr, count)
@@ -295,7 +295,7 @@ class Tensor:
     def any(self) -> 'Tensor':
         """Returns True if any element evaluates to True."""
         try:
-            from _corepy_rust import tensor_any
+            from ._corepy_rust import tensor_any
             
             ptr, count, _ref = self._get_buffer_pointer('u1')
             result = tensor_any(ptr, count)
@@ -309,7 +309,7 @@ class Tensor:
     def sum(self) -> 'Tensor':
         """Returns sum of all elements."""
         try:
-            from _corepy_rust import tensor_sum_f32, tensor_sum_i32
+            from ._corepy_rust import tensor_sum_f32, tensor_sum_i32
             
             if self._dtype == DataType.INT32:
                  ptr, count, _ref = self._get_buffer_pointer('i4')
@@ -328,7 +328,7 @@ class Tensor:
     def mean(self) -> 'Tensor':
         """Returns arithmetic mean of all elements."""
         try:
-            from _corepy_rust import tensor_mean_f32
+            from ._corepy_rust import tensor_mean_f32
             
             # Mean implies float result usually
             ptr, count, _ref = self._get_buffer_pointer('f4')

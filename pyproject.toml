@@ -29,7 +29,7 @@ classifiers = [
 dependencies = [
     "typing-extensions>=4.6.0",
     "pydantic>=2.0.0",
-    "corepy-runtime==0.2.0",  # Exact version - must match Rust runtime
+    "corepy-runtime==0.2.1",  # Exact version - must match Rust runtime
     "numpy>=2.0.2",
 ]
 
@@ -84,6 +84,7 @@ dev = [
     "ninja",
     "pybind11",
     "scikit-build-core>=0.4.3",
+    "patchelf>=0.17.2",
 ]
 
 [tool.uv]

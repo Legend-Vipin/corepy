@@ -56,10 +56,36 @@ jobs:
           echo "PKG_CONFIG_PATH=$(brew --prefix openblas)/lib/pkgconfig" >> $GITHUB_ENV
           echo "LIBRARY_PATH=$(brew --prefix openblas)/lib:$LIBRARY_PATH" >> $GITHUB_ENV
 
+      - name: Build C++ kernels (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install cmake ninja
+          cmake -S csrc -B csrc/build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build csrc/build --config Release
+
+      - name: Ensure safe RUSTFLAGS on macOS
+        if: runner.os == 'macOS'
+        run: |
+          # Avoid GNU-specific linker flags on macOS
+          echo "RUSTFLAGS=-C target-cpu=native" >> $GITHUB_ENV
+
       - name: Install Dependencies (Windows)
         if: runner.os == 'Windows'
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: false
+          activate-environment: base
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install OpenBLAS (Windows)
+        if: runner.os == 'Windows'
         run: |
-          choco install openblas
+          conda install -y -c conda-forge openblas
+
+      - name: Ensure safe RUSTFLAGS on Windows
+        if: runner.os == 'Windows'
+        run: |
+          echo "RUSTFLAGS=-C target-cpu=native" >> $GITHUB_ENV
 
       - name: Install Dependencies & Project
         shell: bash

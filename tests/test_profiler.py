@@ -140,7 +140,6 @@ def test_matmul_profiling():
     assert ops[op_key]['count'] == 1
     assert ops[op_key]['primary_backend'] == 'CPU'
 
-@pytest.mark.xfail(reason="Profiling works but sum operation aggregation is flaky in test env")
 def test_bottleneck_detection():
     """Test bottleneck detection logic."""
     enable_profiling()
@@ -159,10 +158,9 @@ def test_bottleneck_detection():
     # Since sum is the only thing running, it should be > 10%
     # Note: If this fails in CI, check if sum is being profiled in Rust extension properly
     found = any(b['operation'] == 'sum' for b in bottlenecks)
-    if not found:
-        # Currently failing to record sum in some envs
-        assert True # Bypass for now if xfail doesn't catch logic error
-        return
+    # It must be found now
+    assert found, "Sum operation not detected in bottlenecks"
+
 
     found_sum = next(b for b in bottlenecks if b['operation'] == 'sum')
     assert found_sum['percent_total'] > 5.0

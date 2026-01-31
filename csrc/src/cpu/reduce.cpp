@@ -2,8 +2,10 @@
 #include <cstdint>
 #include <cstddef>
 
-#ifdef __AVX2__
-#include <immintrin.h>
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
+  #ifdef __AVX2__
+    #include <immintrin.h>
+  #endif
 #endif
 
 extern "C" bool all_bool_cpu(const uint8_t* data, size_t count) {

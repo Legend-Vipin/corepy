@@ -10,8 +10,12 @@
 // OPTIMIZATION: AVX2 SIMD (8x f32 per instruction)
 
 #include "corepy_kernels.h"
-#include <immintrin.h>  // AVX2 intrinsics
 #include <cstddef>
+
+// Only include x86-specific SIMD headers on x86/x64 architectures
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || defined(_M_IX86)
+#include <immintrin.h>  // AVX2 intrinsics
+#endif
 
 #ifndef COREPY_USE_OPENBLAS
 

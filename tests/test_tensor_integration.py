@@ -1,7 +1,6 @@
-from typing import Any
-from corepy.tensor import Tensor
 from corepy.backend import BackendType
-import pytest
+from corepy.tensor import Tensor
+
 
 def test_tensor_creation_defaults():
     t = Tensor([1.0, 2.0, 3.0])

@@ -1,5 +1,7 @@
-from typing import Any, List, Callable
+from typing import Callable, List
+
 from corepy.data import Table
+
 
 class Pipeline:
     """

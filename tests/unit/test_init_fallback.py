@@ -1,7 +1,8 @@
-import sys
-import pytest
-from unittest.mock import patch
 import importlib
+import sys
+
+import pytest
+
 
 def test_init_fallback_missing_extension():
     """
@@ -27,7 +28,7 @@ def test_init_fallback_missing_extension():
         importlib.reload(corepy)
         
         # 5. Verify proper version (should still be set)
-        assert corepy.__version__ == "0.1.0"
+        assert corepy.__version__ == "0.2.1"
         
         # 6. Verify fallback behavior
         # add_one should exist (as the python fallback)

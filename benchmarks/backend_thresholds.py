@@ -1,9 +1,4 @@
-import time
-import statistics
 import logging
-from corepy.backend.selector import select_backend
-from corepy.backend.types import BackendType, OperationType, OperationProperties
-from corepy.backend.device import DeviceInfo
 
 # Setup basic logging
 logging.basicConfig(level=logging.INFO)
@@ -52,9 +47,9 @@ def benchmark_thresholds():
         # Validation against our hardcoded threshold (100k)
         if n == 100_000:
             if winner == "GPU" or abs(cpu_t - gpu_t) < 0.01:
-                print(f"  -> Validation: 100k is a reasonable transition point for these params.")
+                print("  -> Validation: 100k is a reasonable transition point for these params.")
             else:
-                print(f"  -> Validation: Warning, 100k might be sub-optimal based on this synthetic model.")
+                print("  -> Validation: Warning, 100k might be sub-optimal based on this synthetic model.")
 
 if __name__ == "__main__":
     benchmark_thresholds()

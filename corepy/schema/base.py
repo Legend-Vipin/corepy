@@ -1,5 +1,8 @@
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field as PydanticField
+
+from pydantic import BaseModel
+from pydantic import Field as PydanticField
+
 
 class Field(BaseModel):
     """

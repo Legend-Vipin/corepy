@@ -1,0 +1,155 @@
+name: Corepy CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-suffix: "py${{ matrix.python-version }}"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      # ========================================
+      # STEP 1: Platform Dependencies
+      # ========================================
+      - name: Install Dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libopenblas-dev cmake ninja-build
+
+      - name: Install Dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install openblas cmake ninja
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix openblas)" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=$(brew --prefix openblas)/lib/pkgconfig" >> $GITHUB_ENV
+          echo "LIBRARY_PATH=$(brew --prefix openblas)/lib:$LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Install Dependencies (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          curl -L -o openblas.zip https://github.com/OpenMathLib/OpenBLAS/releases/download/v0.3.28/OpenBLAS-0.3.28-x64.zip
+          unzip -q openblas.zip -d openblas
+          echo "OPENBLAS_DIR=${{ github.workspace }}/openblas" >> $GITHUB_ENV
+          echo "CMAKE_PREFIX_PATH=${{ github.workspace }}/openblas" >> $GITHUB_ENV
+          # Add OpenBLAS bin to PATH so DLLs are found at runtime
+          echo "${{ github.workspace }}/openblas/bin" >> $GITHUB_PATH
+
+      # ========================================
+      # STEP 2: Build C++ Kernels (csrc/)
+      # ========================================
+      - name: Build C++ kernels
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            cmake -S csrc -B csrc/build -DCMAKE_BUILD_TYPE=Release
+          else
+            cmake -S csrc -B csrc/build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          fi
+          cmake --build csrc/build --config Release
+
+      # ========================================
+      # STEP 3: Install Python deps & Build Rust
+      # ========================================
+      - name: Set RUSTFLAGS
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ] || [ "$RUNNER_OS" == "Windows" ]; then
+            echo "RUSTFLAGS=-C target-cpu=native" >> $GITHUB_ENV
+          fi
+
+      - name: Install dependencies and build Rust extension
+        shell: bash
+        run: |
+          # Install all dev dependencies (includes maturin)
+          uv sync --all-extras --group dev
+          # Build Rust extension using maturin from the dev environment
+          uv run maturin develop --release --manifest-path rust/corepy-runtime/Cargo.toml
+          # Copy the _corepy_rust package to corepy/ for relative imports
+          # The Rust extension is installed as a Python package with __init__.py + .so/.pyd
+          # Use sysconfig for reliable cross-platform site-packages detection
+          SITE_PACKAGES=$(uv run python -c "import sysconfig; print(sysconfig.get_path('purelib'))")
+          echo "=== Site packages: $SITE_PACKAGES ==="
+          
+          # Check if _corepy_rust package exists
+          if [ -d "$SITE_PACKAGES/_corepy_rust" ]; then
+            echo "=== Found _corepy_rust package ==="
+            ls -la "$SITE_PACKAGES/_corepy_rust/"
+            # Copy entire package directory to corepy/
+            cp -r "$SITE_PACKAGES/_corepy_rust" corepy/
+            echo "=== Copied _corepy_rust package to corepy/ ==="
+            ls -la corepy/_corepy_rust/
+            
+            # On Windows, copy OpenBLAS DLL alongside the .pyd to avoid DLL load failures
+            if [ "$RUNNER_OS" == "Windows" ]; then
+              echo "=== Copying OpenBLAS DLLs for Windows ==="
+              if [ -f "$OPENBLAS_DIR/bin/libopenblas.dll" ]; then
+                cp "$OPENBLAS_DIR/bin/libopenblas.dll" corepy/_corepy_rust/
+                echo "=== Copied libopenblas.dll ==="
+              fi
+              # Also check for flang runtime DLLs that OpenBLAS may need
+              for dll in "$OPENBLAS_DIR/bin/"*.dll; do
+                if [ -f "$dll" ]; then
+                  cp "$dll" corepy/_corepy_rust/
+                  echo "=== Copied $(basename $dll) ==="
+                fi
+              done
+              ls -la corepy/_corepy_rust/
+            fi
+          else
+            echo "=== ERROR: _corepy_rust package not found in site-packages! ==="
+            echo "=== Contents of site-packages ==="
+            ls -la "$SITE_PACKAGES" | head -30
+            exit 1
+          fi
+
+      # ========================================
+      # STEP 4: Verify & Test
+      # ========================================
+      - name: Verify Import
+        shell: bash
+        run: |
+          uv run python -c "import corepy; print(f'corepy {corepy.__version__}')"
+          uv run python -c "from corepy import _corepy_rust; print('Rust runtime loaded')"
+
+      - name: Run Tests
+        shell: bash
+        run: |
+          uv run pytest tests/ --cov=corepy --cov-report=term -v
